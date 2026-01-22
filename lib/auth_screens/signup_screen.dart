@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wearzy/auth_screens/auth_provider.dart';
+import 'package:wearzy/providers/auth_provider.dart';
 import 'package:wearzy/auth_screens/login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -50,6 +50,33 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
 
               const SizedBox(height: 50),
+
+              TextFormField(
+                controller: provider.nameController,
+
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Name is required';
+                  }
+                  return null;
+                },
+
+                decoration: InputDecoration(
+                  hintText: 'Name',
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: const BorderSide(color: Colors.black45),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
               TextFormField(
                 controller: provider.emailController,
@@ -116,33 +143,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
 
 
-              TextFormField(
-                controller: provider.nameController,
 
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Name is required';
-                  }
-                  return null;
-                },
 
-                decoration: InputDecoration(
-                  hintText: 'Name',
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: const BorderSide(color: Colors.black45),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                ),
-              ),
 
               const SizedBox(height: 100),
 

@@ -41,10 +41,22 @@ dependencies:
   like_button: ^2.1.0
   image_picker: ^1.2.1
   shimmer: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+  jwt_decode: ^0.3.1
+  razorpay_flutter: ^1.4.0
+  change_app_package_name: ^1.5.0
+  get: ^4.7.3
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "images/Wearzy Logo.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

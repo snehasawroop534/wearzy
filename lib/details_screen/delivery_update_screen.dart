@@ -1,15 +1,47 @@
 import 'package:flutter/material.dart';
 
+enum OrderStatus {
+  confirmed,
+  packed,
+  dispatched,
+  outForDelivery,
+  delivered,
+}
+
 class DeliveryUpdateScreen extends StatefulWidget {
-  const DeliveryUpdateScreen({super.key});
+
+  /// ✅ REAL ORDER CREATED AT (ADDED)
+  final DateTime? createdAt;
+
+  const DeliveryUpdateScreen({super.key, this.createdAt});
 
   @override
   State<DeliveryUpdateScreen> createState() => _DeliveryUpdateScreenState();
 }
 
 class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
+
+  /// SAME LOGIC as OrderDetails
+  OrderStatus getOrderStatus(DateTime createdAt) {
+    final diff = DateTime.now().difference(createdAt).inMinutes;
+
+    if (diff < 15) return OrderStatus.confirmed;
+    if (diff < 30) return OrderStatus.packed;
+    if (diff < 45) return OrderStatus.dispatched;
+    if (diff < 60) return OrderStatus.outForDelivery;
+    return OrderStatus.delivered;
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    /// ⚠️ Demo purpose: yahan dummy createdAt use ho raha
+    /// Baad me tum yahin real order.createdAt bhej sakti ho
+    final createdAt = widget.createdAt ??
+        DateTime.now().subtract(const Duration(minutes: 40));
+
+    final status = getOrderStatus(createdAt);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -20,64 +52,70 @@ class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
 
               IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
               ),
 
               const SizedBox(height: 10),
 
-
               Expanded(
                 child: ListView(
                   children: [
+
                     buildTimelineTile(
                       isFirst: true,
                       isLast: false,
-                      isActive: true,
+                      isActive: status.index >= OrderStatus.confirmed.index,
                       title: "Order Confirmed",
-                      date: "Sun, 20th Aug '23",
+                      date: "Order placed",
                       description: [
-                        ["Your Order has been placed.", "Sun, 20th Aug '23 - 2:02pm"],
-                        ["Seller has processed your order.", "Mon, 21st Aug '23 - 11:27am"],
-                        ["Your item has been picked up by delivery partner.", "Tue, 22nd Aug '23 - 10:26am"],
+                        ["Your order has been placed successfully", ""],
                       ],
                     ),
 
                     buildTimelineTile(
                       isFirst: false,
                       isLast: false,
-                      isActive: true,
-                      title: "Shipped",
-                      date: "Tue, 22nd Aug '23",
+                      isActive: status.index >= OrderStatus.packed.index,
+                      title: "Packed",
+                      date: "Item packed",
                       description: [
-                        ["Ekart Logistics - FMPC2985294785", ""],
-                        ["Your item has been shipped.", "Tue, 22nd Aug '23 - 10:30am"],
-                        ["Your item has been received in the hub nearest to you", ""],
+                        ["Seller has packed your item", ""],
                       ],
                     ),
 
                     buildTimelineTile(
                       isFirst: false,
                       isLast: false,
-                      isActive: true,
+                      isActive: status.index >= OrderStatus.dispatched.index,
+                      title: "Dispatched",
+                      date: "Shipped",
+                      description: [
+                        ["Your item has been dispatched", ""],
+                      ],
+                    ),
+
+                    buildTimelineTile(
+                      isFirst: false,
+                      isLast: false,
+                      isActive:
+                      status.index >= OrderStatus.outForDelivery.index,
                       title: "Out For Delivery",
-                      date: "Fri, 25th Aug '23",
+                      date: "On the way",
                       description: [
-                        ["Your item is out for delivery", "Fri, 25th Aug '23 - 9:49am"],
+                        ["Your item is out for delivery", ""],
                       ],
                     ),
 
                     buildTimelineTile(
                       isFirst: false,
                       isLast: true,
-                      isActive: true,
+                      isActive: status == OrderStatus.delivered,
                       title: "Delivered",
-                      date: "Fri, 25th Aug '23",
+                      date: "Completed",
                       description: [
-                        ["Your item has been delivered", "Fri, 25th Aug '23 - 12:41pm"],
+                        ["Your item has been delivered", ""],
                       ],
-                    )
+                    ),
                   ],
                 ),
               )
@@ -106,7 +144,7 @@ class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
               width: 16,
               height: 16,
               decoration: BoxDecoration(
-                color: isActive ? Colors.green : Colors.grey,
+                color: isActive ? Colors.green : Colors.grey.shade400,
                 shape: BoxShape.circle,
               ),
             ),
@@ -114,8 +152,8 @@ class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
             if (!isLast)
               Container(
                 width: 2,
-                height: 80,
-                color: Colors.green,
+                height: 70,
+                color: isActive ? Colors.green : Colors.grey.shade300,
               ),
           ],
         ),
@@ -127,10 +165,11 @@ class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "$title  $date",
-                style: const TextStyle(
-                  fontSize: 17,
+                "$title  •  $date",
+                style: TextStyle(
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: isActive ? Colors.black : Colors.grey,
                 ),
               ),
               const SizedBox(height: 6),
@@ -138,19 +177,13 @@ class _DeliveryUpdateScreenState extends State<DeliveryUpdateScreen> {
               ...description.map(
                     (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item[0],
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      if (item[1].isNotEmpty)
-                        Text(
-                          item[1],
-                          style: const TextStyle(fontSize: 13, color: Colors.grey),
-                        ),
-                    ],
+                  child: Text(
+                    item[0],
+                    style: TextStyle(
+                      fontSize: 14,
+                      color:
+                      isActive ? Colors.black87 : Colors.grey,
+                    ),
                   ),
                 ),
               ),

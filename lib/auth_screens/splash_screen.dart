@@ -13,6 +13,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
+
   @override
   void initState() {
     super.initState();
@@ -38,11 +39,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   }
 
-
-
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
+          backgroundColor: Color(0xffc9857c),
           body: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

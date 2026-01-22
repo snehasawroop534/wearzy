@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wearzy/auth_screens/signup_screen.dart';
 
-import 'auth_provider.dart';
+import '../forgot _password_screen.dart';
+import '../providers/auth_provider.dart';
 import '../bottom_nav_screens/bottom_navi_bar.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -120,14 +121,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(225, 10, 0, 0),
-                child: Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Color(0xffcf8a7d)),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    );
+                  },
+                  child: Text(
+                    "Forgot Password?",
+                    style: TextStyle(color: Color(0xffcf8a7d)),
+                  ),
                 ),
               ),
+
 
               const SizedBox(height: 100),
 

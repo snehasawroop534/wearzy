@@ -1,7 +1,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:wearzy/bottom_nav_screens/account_screen.dart';
-import 'package:wearzy/bottom_nav_screens/feed_screen.dart';
 import 'package:wearzy/bottom_nav_screens/category_screen.dart';
 import 'package:wearzy/bottom_nav_screens/home_screen.dart';
 import 'package:wearzy/bottom_nav_screens/explore_screen.dart';
@@ -18,7 +17,6 @@ class _BottomNaviBarState extends State<BottomNaviBar> {
 
   List<Widget> screens = [
     HomeScreen(),
-    FeedScreen(),
     ExploreScreen(),
     CategoryScreen(),
     AccountScreen()
@@ -36,16 +34,13 @@ class _BottomNaviBarState extends State<BottomNaviBar> {
       body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Color(0xffc9857c),
+        unselectedItemColor: Colors.white70,
+        backgroundColor: Colors.black87,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.feed),
-            label: "Feed",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.sell_outlined),

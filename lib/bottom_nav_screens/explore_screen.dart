@@ -1,4 +1,18 @@
+import 'package:carousel_slider/carousel_options.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:like_button/like_button.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wearzy/details_screen/favourite_screen.dart';
+
+import '../details_screen/cart_screen.dart';
+import '../details_screen/product_screen.dart';
+import '../details_screen/single_product_screen.dart';
+import '../providers/get_cart_provider.dart';
+import '../providers/product_provider.dart';
+import '../providers/wishlist_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -8,6 +22,15 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
+  final CarouselController _carouselController = CarouselController();
+  int currentIndex = 0;
+
+  final List<Map<String, String>> imageList = [
+    {"id": "1", "image_path": "images/crausel1.jpeg"},
+    {"id": "2", "image_path": "images/crausel2.jpeg"},
+    {"id": "3", "image_path": "images/crausel3.jpeg"},
+  ];
+
   @override
   Widget build(BuildContext context) {
     final accent = Colors.teal.shade300;
@@ -36,312 +59,349 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ),
         actions: [
-          const Padding(
-            padding: EdgeInsets.only(right: 10),
-            child: Icon(Icons.favorite_border, color: Colors.white),
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => FavouriteScreen(),));
+                },
+                child: const Icon(Icons.favorite_border, color: Colors.white)),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Stack(
-              children: [
-                const Icon(Icons.shopping_bag_outlined, color: Colors.white),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: CircleAvatar(
-                    radius: 6,
-                    backgroundColor: Colors.red,
-                    child: const Text(
-                      '1',
-                      style: TextStyle(color: Colors.white, fontSize: 8),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen()));
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 28),
+
+                  // ⭐ CART COUNT BADGE
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Consumer<GetCartProvider>(
+                      builder: (context, cartProv, child) {
+                        return cartProv.cartList.isNotEmpty
+                            ? Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            cartProv.cartList.length.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                            : const SizedBox();
+                      },
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric( vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Swag Storm Spotted",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+              
+              
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("Top Trending",style: TextStyle(fontSize: 22,color: Colors.white,fontWeight: FontWeight.bold),),
               ),
-              const SizedBox(height: 18),
-
-              _SectionHeader(
-                title: "Barcino",
-                subtitle: "#Tops",
-                followText: "+ Follow",
-              ),
-              const SizedBox(height: 8),
-              _HorizontalBrandThumbnails(
-                images: const [
-                  "https://images.unsplash.com/photo-1520975918319-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
-                  "https://images.unsplash.com/photo-1581235720704-06d3acfcb36d?auto=format&fit=crop&w=800&q=80",
-                  "https://images.unsplash.com/photo-1520975663890-ec1c5f9b5b66?auto=format&fit=crop&w=800&q=80",
+              // ------------ HOME SCREEN STYLE CAROUSEL ---------------
+              Stack(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProductScreen()));
+                    },
+                    child: CarouselSlider(
+                      items: imageList
+                          .map(
+                            (item) => Image.asset(
+                          item["image_path"]!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 250,
+                        ),
+                      )
+                          .toList(),
+                      carouselController: CarouselSliderController(),
+                      options: CarouselOptions(
+                        scrollPhysics: const BouncingScrollPhysics(),
+                        autoPlay: true,
+                        height: 250,
+                        aspectRatio: 2,
+                        viewportFraction: 1,
+                        onPageChanged: (index, reason) {
+                          setState(() {
+                            currentIndex = index;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.arrow_right_alt, color: Colors.white),
-                  label: const Text(
-                    "View All",
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
+              SizedBox(height: 8,),
 
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("Brand Advertisement",style: TextStyle(fontSize: 22,color: Colors.white,fontWeight: FontWeight.bold),),
+              ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  children: [
-                    Image.network(
-                      "https://images.unsplash.com/photo-1592878904946-b3cd8d6a0a5b?auto=format&fit=crop&w=1600&q=80",
-                      height: 220,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                    Container(
-                      height: 220,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.6),
-                            Colors.black.withOpacity(0.15)
-                          ],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.center,
+                  child: Image.asset("images/banw.jpeg")),
+
+              SizedBox(height: 8,),
+
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("All Products",style: TextStyle(fontSize: 22,color: Colors.white,fontWeight: FontWeight.bold),),
+              ),
+
+              Consumer<ProductProvider>(
+                builder: (context, provider, child) {
+                  if (provider.productList.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          "No Products Found",
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    itemCount: provider.productList.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.65,
                     ),
-                    Positioned(
-                      left: 16,
-                      bottom: 18,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "GRAB THE LATEST DROP",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                    itemBuilder: (context, index) {
+                      var product = provider.productList[index];
+
+                      final mrp = product.mrp ?? 0;
+                      final price = product.discountedPrice ?? 0;
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SingleProductScreen(product: product),
                             ),
+                          );
+                        },
+
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade900,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          SizedBox(height: 6),
-                          Text(
-                            "UP TO 40% OFF",
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              // ⭐ IMAGE + HEART BUTTON
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                      topRight: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      product.image.toString(),
+                                      height: 177,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          height: 177,
+                                          width: double.infinity,
+                                          color: Colors.grey.shade700,
+                                          child: const Icon(Icons.image, size: 50, color: Colors.white),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  // ❤️ Favourite Icon (TOP RIGHT)
+                                  // ❤️ Favourite Icon (TOP RIGHT)
+                                  // ❤️ Favourite Icon (TOP RIGHT)
+                                  Positioned(
+                                    right: 8,
+                                    top: 8,
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(5),
+                                      child: Consumer<WishlistProvider>(
+                                        builder: (context, wishlistProvider, child) {
+
+                                          // ✅ CHECK LIKE STATUS
+                                          bool isLiked = wishlistProvider.isLiked(
+                                            product.productId ?? 0,
+                                          );
+
+                                          return LikeButton(
+                                            size: 20,
+                                            isLiked: isLiked,
+
+                                            likeBuilder: (liked) {
+                                              return Icon(
+                                                liked
+                                                    ? CupertinoIcons.heart_fill
+                                                    : CupertinoIcons.heart,
+                                                color: liked ? Colors.pink : Colors.grey,
+                                                size: 20,
+                                              );
+                                            },
+
+                                            onTap: (liked) async {
+                                              SharedPreferences prefs =
+                                              await SharedPreferences.getInstance();
+                                              int? userId = prefs.getInt("user_id");
+
+                                              if (userId == null) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text("Please login first"),
+                                                  ),
+                                                );
+                                                return liked; // ❗ state unchanged
+                                              }
+
+                                              // 🔥 TOGGLE WISHLIST
+                                              bool newState =
+                                              await wishlistProvider.toggleWishlist(
+                                                userId,
+                                                product.productId ?? 0,
+                                              );
+
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    newState
+                                                        ? "Item added to wishlist"
+                                                        : "Item removed from wishlist",
+                                                  ),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+
+                                              return newState; // 🔥 IMPORTANT FOR LIKE BUTTON
+                                            },
+                                          );
+                                        },
+                                      ),
+
+                                    ),
+                                  ),
+
+
+                                ],
+                              ),
+
+                              // ⭐ TEXT AREA
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.title ?? "",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 3),
+
+                                      Text(
+                                        product.brand ?? "",
+                                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                      ),
+
+                                      const SizedBox(height: 3),
+
+                                      Text(
+                                        product.description ?? "",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                      ),
+
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "₹$price",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "₹$mrp",
+                                            style: const TextStyle(
+                                              color: Colors.white38,
+                                              fontSize: 12,
+                                              decoration: TextDecoration.lineThrough,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 4),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
 
-              const SizedBox(height: 28),
-
-              _SectionTitle(title: "Street-Chic Carnival"),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 210,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _BrandCard(
-                      brand: "BURGER BAE",
-                      tag: "#tees #baggy",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _BrandCard(
-                      brand: "LA CHIC",
-                      tag: "#dress #vibes",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1549989476-7f3b2f9d0b0b?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _BrandCard(
-                      brand: "OUTZID",
-                      tag: "#GetReady",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1520975918299-7a6fdc1a7b8d?auto=format&fit=crop&w=800&q=80",
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              _SectionTitle(title: "Hep & Hype Haul"),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 210,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _BrandCard(
-                      brand: "Quiero",
-                      tag: "#trendy #Fashion",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _BrandCard(
-                      brand: "NOMADE",
-                      tag: "#Floral",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1503342217505-b0a15d6a6c21?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _BrandCard(
-                      brand: "UZERO",
-                      tag: "#Street",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1472417583565-62e7bdeda490?auto=format&fit=crop&w=800&q=80",
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 26),
-
-              SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _ThumbCard(
-                      label: "ACCESSORIES",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1573497491208-6b1acb260507?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _ThumbCard(
-                      label: "SLOW & ELEVATED",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=80",
-                    ),
-                    _ThumbCard(
-                      label: "FAB FOOT FORWARD",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1600180758890-6c9e7d70f0a2?auto=format&fit=crop&w=800&q=80",
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              _SectionTitle(title: "Hot Right Now"),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 260,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _TallCard(
-                      title: "KOREAN STREET",
-                      subtitle: "Cargos & Bodycons by IZf",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-                    ),
-                    _TallCard(
-                      title: "STATEMENT DRESSES",
-                      subtitle: "Dresses & more by OUTCAST",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1520975681917-8b2f6c2f4b3d?auto=format&fit=crop&w=900&q=80",
-                    ),
-                    _TallCard(
-                      title: "RETRO GROOVE",
-                      subtitle: "Trackpants & Co-ords",
-                      imageUrl:
-                      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=900&q=80",
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 26),
-
-              const Text(
-                "Explore by Lit Categories",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              _CategoryTile(
-                title: "Street Wear",
-                subtitle: "Y2k Nostalgia",
-                imageUrl:
-                "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=900&q=80",
-              ),
-              _CategoryTile(
-                title: "Resort",
-                subtitle: "Vacay Timeee",
-                imageUrl:
-                "https://images.unsplash.com/photo-1503342452485-86f7f7f0f8b7?auto=format&fit=crop&w=900&q=80",
-              ),
-              _CategoryTile(
-                title: "Party Wear",
-                subtitle: "Saturday Night Plans",
-                imageUrl:
-                "https://images.unsplash.com/photo-1520975694126-0ea5f7f9b1f7?auto=format&fit=crop&w=900&q=80",
-              ),
-              _CategoryTile(
-                title: "Office Wear",
-                subtitle: "9 to 5 Shenanigans",
-                imageUrl:
-                "https://images.unsplash.com/photo-1544739313-6d2c5f2cfb3a?auto=format&fit=crop&w=900&q=80",
-              ),
-              _CategoryTile(
-                title: "Casual Wear",
-                subtitle: "Everyday Styles",
-                imageUrl:
-                "https://images.unsplash.com/photo-1531123414780-f1f6f3e85f79?auto=format&fit=crop&w=900&q=80",
-              ),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xffc9857c)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    "View All Themes",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-            ],
+             ]
           ),
         ),
       ),

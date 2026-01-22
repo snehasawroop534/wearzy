@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,13 +13,12 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController screenNameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
 
   DateTime? selectedDob;
   String gender = 'Female';
+  File? profileImage;
 
   @override
   void initState() {
@@ -23,48 +26,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     loadUserData();
   }
 
+  // ---------------- LOAD USER DATA ----------------
   Future<void> loadUserData() async {
     final pref = await SharedPreferences.getInstance();
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    var p = profileProvider.profile;
 
     setState(() {
-      firstNameController.text = pref.getString("first_name") ?? "";
-      lastNameController.text = pref.getString("last_name") ?? "";
-      screenNameController.text = pref.getString("screen_name") ?? "";
-      emailController.text = pref.getString("email") ?? "";
+      // NAME
+      nameController.text = p?.name ?? pref.getString("first_name") ?? "";
 
+      // EMAIL
+      emailController.text = p?.email ?? pref.getString("email") ?? "";
+
+      // DOB
       final dobString = pref.getString("dob");
-      if (dobString != null) {
-        selectedDob = DateTime.tryParse(dobString);
-      }
+      if (dobString != null) selectedDob = DateTime.tryParse(dobString);
 
+      // GENDER
       gender = pref.getString("gender") ?? "Female";
+
+      // IMAGE
+      String? imgPath = pref.getString("profile_pic");
+      if (imgPath != null && imgPath.isNotEmpty) {
+        profileImage = File(imgPath);
+      }
     });
   }
 
-  Future<void> saveUserData() async {
+  // ---------------- SAVE SHARED PREF (DOB & Gender) ----------------
+  Future<void> saveExtraLocalData() async {
     final pref = await SharedPreferences.getInstance();
-
-    await pref.setString("first_name", firstNameController.text);
-    await pref.setString("last_name", lastNameController.text);
-    await pref.setString("screen_name", screenNameController.text);
-    await pref.setString("email", emailController.text);
-
     if (selectedDob != null) {
       await pref.setString("dob", selectedDob!.toIso8601String());
     }
-
     await pref.setString("gender", gender);
   }
 
-  @override
-  void dispose() {
-    firstNameController.dispose();
-    lastNameController.dispose();
-    screenNameController.dispose();
-    emailController.dispose();
-    super.dispose();
-  }
-
+  // ---------------- DATE PICKER ----------------
   Future<void> pickDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -73,16 +72,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      setState(() {
-        selectedDob = picked;
-      });
+      setState(() => selectedDob = picked);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -95,150 +95,143 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("First Name*", style: TextStyle(fontSize: 16)),
-            TextField(controller: firstNameController),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
-            const Text("Last Name*", style: TextStyle(fontSize: 16)),
-            TextField(controller: lastNameController),
-            const SizedBox(height: 20),
-
-            const Text("Screen Name*", style: TextStyle(fontSize: 16)),
-            TextField(controller: screenNameController),
-            const SizedBox(height: 20),
-
-            const Text("Email Address*", style: TextStyle(fontSize: 16)),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: emailController,
-                    readOnly: true,
-                    decoration: const InputDecoration(),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final newEmail = await showDialog<String>(
-                      context: context,
-                      builder: (context) {
-                        TextEditingController temp = TextEditingController();
-                        return AlertDialog(
-                          title: const Text("Change Email"),
-                          content: TextField(
-                            controller: temp,
-                            decoration: const InputDecoration(hintText: "Enter new email"),
-                          ),
-                          actions: [
-                            TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("Cancel")),
-                            TextButton(
-                                onPressed: () => Navigator.pop(context, temp.text),
-                                child: const Text("Save")),
-                          ],
-                        );
-                      },
-                    );
-
-                    if (newEmail != null && newEmail.isNotEmpty) {
-                      setState(() => emailController.text = newEmail);
-                    }
-                  },
-                  child: const Text("Change", style: TextStyle(color: Colors.blue)),
-                )
-              ],
+            // ------------------- NAME -------------------
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("First Name*", style: TextStyle(fontSize: 16)),
             ),
+            TextField(controller: nameController),
+            const SizedBox(height: 20),
 
+            // ------------------- EMAIL -------------------
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Email Address*", style: TextStyle(fontSize: 16)),
+            ),
+            TextField(controller: emailController),
             const SizedBox(height: 25),
+
+            // ------------------- DOB -------------------
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("Date of birth", style: TextStyle(fontSize: 15)),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: pickDate,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          selectedDob == null
-                              ? "Select date of birth"
-                              : "${selectedDob!.day}/${selectedDob!.month}/${selectedDob!.year}",
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        const Icon(Icons.keyboard_arrow_down),
-                      ],
+              child: GestureDetector(
+                onTap: pickDate,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      selectedDob == null
+                          ? "Select date of birth"
+                          : "${selectedDob!.day}/${selectedDob!.month}/${selectedDob!.year}",
+                      style: const TextStyle(fontSize: 16),
                     ),
-                  )
-                ],
+                    const Icon(Icons.keyboard_arrow_down),
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 30),
 
-            const Text("Gender", style: TextStyle(fontSize: 16)),
+            // ------------------- GENDER -------------------
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Gender", style: TextStyle(fontSize: 16)),
+            ),
             Row(
               children: [
                 Radio(
-                  value: "Female",
-                  groupValue: gender,
-                  onChanged: (v) => setState(() => gender = v!),
-                ),
+                    value: "Female",
+                    groupValue: gender,
+                    onChanged: (v) => setState(() => gender = v!)),
                 const Text("Female"),
                 const SizedBox(width: 20),
                 Radio(
-                  value: "Male",
-                  groupValue: gender,
-                  onChanged: (v) => setState(() => gender = v!),
-                ),
+                    value: "Male",
+                    groupValue: gender,
+                    onChanged: (v) => setState(() => gender = v!)),
                 const Text("Male"),
               ],
             ),
 
             const SizedBox(height: 40),
 
+            // ------------------- RESET + UPDATE BUTTONS -------------------
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      firstNameController.clear();
-                      lastNameController.clear();
-                      screenNameController.clear();
+                      nameController.clear();
                       emailController.clear();
                       setState(() {
                         selectedDob = null;
                         gender = "Female";
+                        profileImage = null;
                       });
                     },
-                    child: const Text("Reset", style: TextStyle(color: Colors.black)),
+                    child: const Text("Reset"),
                   ),
                 ),
+
                 const SizedBox(width: 20),
+
+                /// ------------------ UPDATE BUTTON ------------------
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () async {
-                      await saveUserData();
-                      Navigator.pop(context);
+                    onPressed: profileProvider.isUpdating
+                        ? null
+                        : () async {
+                      // 1️⃣ API UPDATE CALL
+                      bool success =
+                      await profileProvider.updateProfile(
+                        name: nameController.text,
+                        email: emailController.text,
+                      );
+
+                      if (success) {
+                        // 2️⃣ SAVE DOB + GENDER LOCALLY
+                        await saveExtraLocalData();
+
+                        // 3️⃣ SHOW SUCCESS
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Profile Updated Successfully"),
+                          ),
+                        );
+
+                        Navigator.pop(context);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Update Failed!"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                    child: const Text("Update", style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                    ),
+                    child: profileProvider.isUpdating
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("Update",
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
